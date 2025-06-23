@@ -29,16 +29,7 @@ class SaleController extends BaseController
     public function create(Request $request): JsonResponse
     {
         $data = $this->getRequestData($request);
-        $required = ['CLIENTE_ID', 'PRODUCTO_ID', 'CANTIDAD', 'FECHA'];
-        $missing = $this->validateRequiredFields($data, $required);
-        if ($missing) {
-            return $this->error('Missing required fields: ' . implode(', ', $missing), 400);
-        }
-
-        // Conversión de fecha al formato Oracle
-        $data['FECHA'] = "TO_DATE('{$data['FECHA']}', 'YYYY-MM-DD')";
-
-        $this->crud->insert('VENTAS', $data, ['FECHA']);
+        $this->crud->insert('VENTAS', $data, ['fecha_venta']);
         return $this->jsonCreated();
     }
 

@@ -46,16 +46,6 @@ class ClientController extends BaseController
         return $this->jsonCreated();
     }
 
-    #[Route('/clients/list', methods: ['GET'])]
-    public function list(): JsonResponse
-    {
-        $results = $this->crud->query("
-            SELECT Id_Client AS id, NOMBRE AS nombre
-            FROM PROVEEDORES
-            ORDER BY NOMBRE
-        ");
-        return $this->success($results);
-    }
 
     /**
      * @OA\RequestBody(

@@ -20,12 +20,12 @@ class GenericCrudService
         return count($rows) > 0 ? ArrayToDtoMapper::map($rows[0], $dtoClass) : null;
     }
 
-    public function insert(string $table, array $data): void
+    public function insert(string $table, array $data, array $dateFields = []): void
     {
         $columns = array_keys($data);
 
-        $placeholders = array_map(function ($col) {
-            return $col === 'fecha_caducidad'
+        $placeholders = array_map(function ($col) use ($dateFields) {
+            return in_array($col, $dateFields)
                 ? "TO_DATE(:$col, 'YYYY-MM-DD')"
                 : ":$col";
         }, $columns);
@@ -45,18 +45,16 @@ class GenericCrudService
         $this->oracle->execute($sql, $params);
     }
 
-
-    public function update(string $table, string $idField, int $id, array $data): void
+    public function update(string $table, string $idField, int $id, array $data, array $dateFields = []): void
     {
         $set = [];
         $params = [];
 
         foreach ($data as $col => $val) {
-            if ($col === 'fecha_caducidad') {
-                $set[] = "$col = TO_DATE(:$col, 'YYYY-MM-DD')";
-            } else {
-                $set[] = "$col = :$col";
-            }
+            $set[] = in_array($col, $dateFields)
+                ? "$col = TO_DATE(:$col, 'YYYY-MM-DD')"
+                : "$col = :$col";
+
             $params[":$col"] = $val;
         }
 
@@ -71,7 +69,6 @@ class GenericCrudService
 
         $this->oracle->execute($sql, $params);
     }
-
 
     public function delete(string $table, string $idField, int $id): void
     {
