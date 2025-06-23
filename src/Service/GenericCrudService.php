@@ -23,37 +23,55 @@ class GenericCrudService
     public function insert(string $table, array $data): void
     {
         $columns = array_keys($data);
-        $placeholders = array_map(fn($col) => ":$col", $columns);
+
+        $placeholders = array_map(function ($col) {
+            return $col === 'fecha_caducidad'
+                ? "TO_DATE(:$col, 'YYYY-MM-DD')"
+                : ":$col";
+        }, $columns);
+
         $sql = sprintf(
             "INSERT INTO %s (%s) VALUES (%s)",
             $table,
             implode(',', $columns),
             implode(',', $placeholders)
         );
+
         $params = [];
         foreach ($columns as $col) {
             $params[":$col"] = $data[$col];
         }
+
         $this->oracle->execute($sql, $params);
     }
+
 
     public function update(string $table, string $idField, int $id, array $data): void
     {
         $set = [];
         $params = [];
+
         foreach ($data as $col => $val) {
-            $set[] = "$col = :$col";
+            if ($col === 'fecha_caducidad') {
+                $set[] = "$col = TO_DATE(:$col, 'YYYY-MM-DD')";
+            } else {
+                $set[] = "$col = :$col";
+            }
             $params[":$col"] = $val;
         }
+
         $params[":id"] = $id;
+
         $sql = sprintf(
             "UPDATE %s SET %s WHERE %s = :id",
             $table,
             implode(',', $set),
             $idField
         );
+
         $this->oracle->execute($sql, $params);
     }
+
 
     public function delete(string $table, string $idField, int $id): void
     {

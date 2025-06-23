@@ -2,11 +2,14 @@
 
 namespace App\DTO;
 
+use App\DTO\BaseDTO;
+
 class SaleDetailDTO extends BaseDTO
 {
-    public int $detalleId;
-    public int $ventaId;
-    public int $productoId;
+    public int $id_detalle;
+    public int $id_venta;
+    public int $id_producto;
     public int $cantidad;
-    public float $precioUnitario;
+    public float $precio_unitario;
+    public float $subtotal;
 }

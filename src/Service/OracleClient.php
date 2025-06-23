@@ -11,8 +11,8 @@ class OracleClient
         $username = 'tienda';
         $password = 'tienda123';
         $connectionString = "(DESCRIPTION =
-            (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1522))
-            (CONNECT_DATA = (SERVICE_NAME = XEPDB1))
+            (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+            (CONNECT_DATA = (SERVICE_NAME = xepdb1))
         )";
 
         $this->conn = oci_connect($username, $password, $connectionString, 'AL32UTF8');
@@ -28,7 +28,8 @@ class OracleClient
         $stmt = oci_parse($this->conn, $sql);
 
         foreach ($params as $key => &$val) {
-            oci_bind_by_name($stmt, $key, $val);
+            $placeholder = ':' . ltrim($key, ':');
+            oci_bind_by_name($stmt, $placeholder, $val);
         }
 
         oci_execute($stmt);
@@ -65,5 +66,11 @@ class OracleClient
         if ($this->conn) {
             oci_close($this->conn);
         }
+    }
+
+    public function queryOne(string $sql, array $params = []): ?array
+    {
+        $rows = $this->query($sql, $params);
+        return $rows[0] ?? null;
     }
 }

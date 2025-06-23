@@ -21,7 +21,7 @@ class SaleController extends BaseController
     #[Route('/sales/{id}', methods: ['GET'])]
     public function get(int $id): JsonResponse
     {
-        $sale = $this->crud->getById('VENTAS', 'VENTAS_ID', $id, SaleDTO::class);
+        $sale = $this->crud->getById('VENTAS', 'ID_VENTA', $id, SaleDTO::class);
         return $sale ? $this->success($sale) : $this->error('Sale not found', 404);
     }
 
@@ -38,7 +38,7 @@ class SaleController extends BaseController
         // Conversión de fecha al formato Oracle
         $data['FECHA'] = "TO_DATE('{$data['FECHA']}', 'YYYY-MM-DD')";
 
-        $this->crud->insert('VENTAS', $data, ['FECHA']); // FECHA como expresión SQL
+        $this->crud->insert('VENTAS', $data, ['FECHA']);
         return $this->jsonCreated();
     }
 
@@ -51,14 +51,14 @@ class SaleController extends BaseController
             $data['FECHA'] = "TO_DATE('{$data['FECHA']}', 'YYYY-MM-DD')";
         }
 
-        $this->crud->update('VENTAS', 'VENTAS_ID', $id, $data, ['FECHA']);
+        $this->crud->update('VENTAS', 'ID_VENTA', $id, $data, ['FECHA']);
         return $this->jsonUpdated();
     }
 
     #[Route('/sales/{id}', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
-        $this->crud->delete('VENTAS', 'VENTAS_ID', $id);
+        $this->crud->delete('VENTAS', 'ID_VENTA', $id);
         return $this->jsonDeleted();
     }
 }

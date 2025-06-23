@@ -20,7 +20,7 @@ class StockAlertController extends BaseController
     #[Route('/stock-alerts/{id}', methods: ['GET'])]
     public function get(int $id): JsonResponse
     {
-        $alert = $this->crud->getById('ALERTAS_STOCK', 'ALERTA_ID', $id, StockAlertDTO::class);
+        $alert = $this->crud->getById('ALERTAS_STOCK', 'ID_ALERTA', $id, StockAlertDTO::class);
         return $alert ? $this->success($alert) : $this->error('Stock alert not found', 404);
     }
 }

@@ -22,7 +22,7 @@ class ClientController extends BaseController
     #[Route('/clients/{id}', methods: ['GET'])]
     public function get(int $id): JsonResponse
     {
-        $client = $this->crud->getById('CLIENTES', 'CLIENTES_ID', $id, ClientDTO::class);
+        $client = $this->crud->getById('CLIENTES', 'ID_CLIENTE', $id, ClientDTO::class);
         return $client ? $this->success($client) : $this->error('Client not found', 404);
     }
 
@@ -46,6 +46,17 @@ class ClientController extends BaseController
         return $this->jsonCreated();
     }
 
+    #[Route('/clients/list', methods: ['GET'])]
+    public function list(): JsonResponse
+    {
+        $results = $this->crud->query("
+            SELECT Id_Client AS id, NOMBRE AS nombre
+            FROM PROVEEDORES
+            ORDER BY NOMBRE
+        ");
+        return $this->success($results);
+    }
+
     /**
      * @OA\RequestBody(
      *     required=true,
@@ -56,7 +67,7 @@ class ClientController extends BaseController
     #[Route('/clients/{id}', methods: ['PUT'])]
     public function update(int $id, #[MapRequestPayload] ClientDTO $client): JsonResponse
     {
-        $this->crud->update('CLIENTES', 'CLIENTES_ID', $id, [
+        $this->crud->update('CLIENTES', 'ID_CLIENTE', $id, [
             'NOMBRE'   => $client->nombre,
             'EMAIL'    => $client->email,
             'TELEFONO' => $client->telefono,
@@ -68,7 +79,7 @@ class ClientController extends BaseController
     #[Route('/clients/{id}', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
-        $this->crud->delete('CLIENTES', 'CLIENTES_ID', $id);
+        $this->crud->delete('CLIENTES', 'ID_CLIENTE', $id);
         return $this->jsonDeleted();
     }
 }

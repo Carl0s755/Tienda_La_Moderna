@@ -4,8 +4,8 @@ namespace App\DTO;
 
 class ProviderDTO extends BaseDTO
 {
-    public int $idProveedor;
+    public int $Id_Proveedor;
     public string $nombre;
-    public string $direccion;
+    public string $contacto;
     public string $telefono;
 }

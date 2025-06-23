@@ -4,8 +4,11 @@ namespace App\DTO;
 
 class ProductDTO extends BaseDTO
 {
-    public int $idProducto;
+    public int $Id_Producto;
     public string $nombre;
-    public float $precio;
+    public string $descripcion;
+    public float $precio_unitario;
     public int $stock;
+    public ?string $fecha_caducidad;
+    public ?int $Id_Proveedor;
 }

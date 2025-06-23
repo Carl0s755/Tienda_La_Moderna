@@ -4,9 +4,8 @@ namespace App\DTO;
 
 class StockAlertDTO extends BaseDTO
 {
-    public int $alertaId;
-    public int $productoId;
-    public int $stockMinimo;
-    public int $stockActual;
-    public string $fechaAlerta;
+    public int $ID_ALERTA;
+    public int $ID_PRODUCTO;
+    public string $MENSAJE;
+    public string $FECHA_ALERTA;
 }

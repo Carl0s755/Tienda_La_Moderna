@@ -14,10 +14,9 @@ abstract class BaseDTO
 
         foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             $propertyName = $property->getName();
-            $columnName = strtoupper(preg_replace('/([a-z])([A-Z])/', '$1_$2', $propertyName)); // camelCase ➝ SNAKE_CASE
 
-            if (array_key_exists($columnName, $row)) {
-                $value = $row[$columnName];
+            if (array_key_exists($propertyName, $row)) {
+                $value = $row[$propertyName];
                 $type = $property->getType()?->getName();
 
                 if ($type === 'int') {
