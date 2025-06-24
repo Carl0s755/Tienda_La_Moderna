@@ -12,11 +12,17 @@ abstract class BaseDTO
         $dto = new static();
         $reflection = new ReflectionClass($dto);
 
+        $normalizedRow = [];
+        foreach ($row as $key => $value) {
+            $camelCaseKey = lcfirst(str_replace(' ', '', ucwords(strtolower(str_replace('_', ' ', $key)))));
+            $normalizedRow[$camelCaseKey] = $value;
+        }
+
         foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             $propertyName = $property->getName();
 
-            if (array_key_exists($propertyName, $row)) {
-                $value = $row[$propertyName];
+            if (array_key_exists($propertyName, $normalizedRow)) {
+                $value = $normalizedRow[$propertyName];
                 $type = $property->getType()?->getName();
 
                 if ($type === 'int') {
@@ -35,6 +41,7 @@ abstract class BaseDTO
 
         return $dto;
     }
+
 
     /** @return static[] */
     public static function fromRows(array $rows): array

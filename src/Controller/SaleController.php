@@ -4,13 +4,17 @@ namespace App\Controller;
 
 use App\DTO\SaleDTO;
 use App\Service\GenericCrudService;
+use App\Service\OracleClient;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 class SaleController extends BaseController
 {
-    public function __construct(private GenericCrudService $crud) {}
+    public function __construct(
+        private GenericCrudService $crud,
+        private OracleClient $oracle
+    ) {}
 
     #[Route('/sales', methods: ['GET'])]
     public function index(): JsonResponse
@@ -29,7 +33,25 @@ class SaleController extends BaseController
     public function create(Request $request): JsonResponse
     {
         $data = $this->getRequestData($request);
-        $this->crud->insert('VENTAS', $data, ['fecha_venta']);
+        $conn = $this->oracle->getConnection();
+
+        $stmt = oci_parse($conn, "BEGIN registrar_venta_json(:id_cliente, :metodo_pago, :fecha_venta, :json_detalles); END;");
+
+        $idCliente = $data['Id_Cliente'] ?? null;
+        oci_bind_by_name($stmt, ":id_cliente", $idCliente);
+        oci_bind_by_name($stmt, ":metodo_pago", $data['metodo_pago']);
+        $fecha = date('d-m-Y', strtotime($data['fecha_venta']));
+        oci_bind_by_name($stmt, ":fecha_venta", $fecha);
+
+        $jsonDetalles = json_encode($data['detalles']);
+        $lob = oci_new_descriptor($conn, OCI_D_LOB);
+        $lob->writeTemporary($jsonDetalles, OCI_TEMP_CLOB);
+
+        oci_bind_by_name($stmt, ":json_detalles", $lob, -1, OCI_B_CLOB);
+
+        oci_execute($stmt);
+        $lob->free();
+
         return $this->jsonCreated();
     }
 
@@ -49,7 +71,13 @@ class SaleController extends BaseController
     #[Route('/sales/{id}', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
-        $this->crud->delete('VENTAS', 'ID_VENTA', $id);
-        return $this->jsonDeleted();
+        try {
+            $this->oracle->execute("BEGIN eliminar_venta_y_reponer_stock(:id); END;", [
+                ':id' => $id
+            ]);
+            return $this->jsonDeleted();
+        } catch (\Exception $e) {
+            return $this->jsonError('Error al eliminar la venta: ' . $e->getMessage());
+        }
     }
 }

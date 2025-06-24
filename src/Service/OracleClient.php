@@ -23,6 +23,11 @@ class OracleClient
         }
     }
 
+    public function getConnection()
+    {
+        return $this->conn;
+    }
+
     public function query(string $sql, array $params = []): array
     {
         $stmt = oci_parse($this->conn, $sql);
