@@ -29,8 +29,13 @@ class ProductController extends BaseController
     public function create(Request $request): JsonResponse
     {
         $data = $this->getRequestData($request);
-        $this->crud->insert('PRODUCTOS', $data);
-        return $this->jsonCreated();
+
+        try {
+            $this->crud->insert('PRODUCTOS', $data, ['fecha_caducidad']);
+            return $this->jsonCreated();
+        } catch (\Exception $e) {
+            return $this->error('Error al crear el producto: ' . $e->getMessage());
+        }
     }
 
     #[Route('/products/{id}', name: 'products_update', methods: ['PUT'])]
@@ -45,7 +50,6 @@ class ProductController extends BaseController
             return $this->error('Error al actualizar el producto: ' . $e->getMessage());
         }
     }
-
 
     #[Route('/products/{id}', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
