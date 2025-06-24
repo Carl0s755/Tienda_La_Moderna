@@ -33,13 +33,19 @@ class ProductController extends BaseController
         return $this->jsonCreated();
     }
 
-    #[Route('/products/{id}', methods: ['PUT'])]
+    #[Route('/products/{id}', name: 'products_update', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
     {
-        $data = $this->getRequestData($request);
-        $this->crud->update('PRODUCTOS', 'ID_PRODUCTO', $id, $data);
-        return $this->jsonUpdated();
+        $data = $request->toArray();
+
+        try {
+            $this->crud->update('PRODUCTOS', 'ID_PRODUCTO', $id, $data, ['fecha_caducidad']);
+            return $this->success();
+        } catch (\Exception $e) {
+            return $this->error('Error al actualizar el producto: ' . $e->getMessage());
+        }
     }
+
 
     #[Route('/products/{id}', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
