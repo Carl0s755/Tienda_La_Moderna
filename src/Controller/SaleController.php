@@ -35,25 +35,41 @@ class SaleController extends BaseController
         $data = $this->getRequestData($request);
         $conn = $this->oracle->getConnection();
 
-        $stmt = oci_parse($conn, "BEGIN registrar_venta_json(:id_cliente, :metodo_pago, :fecha_venta, :json_detalles); END;");
+        $lob = null;
 
-        $idCliente = $data['Id_Cliente'] ?? null;
-        oci_bind_by_name($stmt, ":id_cliente", $idCliente);
-        oci_bind_by_name($stmt, ":metodo_pago", $data['metodo_pago']);
-        $fecha = date('d-m-Y', strtotime($data['fecha_venta']));
-        oci_bind_by_name($stmt, ":fecha_venta", $fecha);
+        try {
+            $stmt = oci_parse($conn, "BEGIN registrar_venta_json(:id_cliente, :metodo_pago, :fecha_venta, :json_detalles); END;");
 
-        $jsonDetalles = json_encode($data['detalles']);
-        $lob = oci_new_descriptor($conn, OCI_D_LOB);
-        $lob->writeTemporary($jsonDetalles, OCI_TEMP_CLOB);
+            $idCliente = $data['Id_Cliente'] ?? null;
+            oci_bind_by_name($stmt, ":id_cliente", $idCliente);
+            oci_bind_by_name($stmt, ":metodo_pago", $data['metodo_pago']);
+            $fecha = date('d-m-Y', strtotime($data['fecha_venta']));
+            oci_bind_by_name($stmt, ":fecha_venta", $fecha);
 
-        oci_bind_by_name($stmt, ":json_detalles", $lob, -1, OCI_B_CLOB);
+            $jsonDetalles = json_encode($data['detalles']);
+            $lob = oci_new_descriptor($conn, OCI_D_LOB);
+            $lob->writeTemporary($jsonDetalles, OCI_TEMP_CLOB);
+            oci_bind_by_name($stmt, ":json_detalles", $lob, -1, OCI_B_CLOB);
 
-        oci_execute($stmt);
-        $lob->free();
+            oci_execute($stmt);
 
-        return $this->jsonCreated();
+            $lob->free();
+            return $this->jsonCreated();
+
+        } catch (\Throwable $e) {
+            if ($lob) {
+                $lob->free();
+            }
+
+            $message = $e->getMessage();
+            if (str_contains($message, 'ORA-20001')) {
+                $message = trim(preg_replace('/.*ORA-20001:\s*(.*?)\s*ORA-\d+.*/s', '$1', $message));
+            }
+
+            return $this->error("Error: " . $message, 400);
+        }
     }
+
 
     #[Route('/sales/{id}', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
